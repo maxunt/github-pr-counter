@@ -10,6 +10,7 @@ export default function GitHubAuth() {
 
   const handleLogin = async () => {
     try {
+      console.log('Signing in with GitHub from origin:', window.location.origin);
       setLoading(true);
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'github',

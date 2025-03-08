@@ -1,0 +1,39 @@
+---
+description: This is the context prompt for the project
+globs: 
+alwaysApply: false
+---
+
+# Project Overview
+
+"Project Overview: I am building a web app called 'pr-insights' that analyzes GitHub pull requests (PRs) for a given repository, displaying metrics like total PRs, lines added, and lines removed. Users log in with GitHub OAuth to access their data, and the app provides a dashboard with these insights. The app is deployed on Vercel and uses a Supabase database for storing metrics.
+Tech Stack:  
+Frontend: Next.js (TypeScript, Tailwind CSS) for UI and API routes, hosted at the project root.  
+
+Backend: Next.js API routes (e.g., /api/prs/route.ts) to fetch and process GitHub PR data.  
+
+Authentication: Supabase with GitHub OAuth, configured in lib/supabase.ts and app/auth/callback/route.ts.  
+
+Database: Supabase PostgreSQL, with a pr_metrics table (columns: id, user_id, repository, pr_count, total_additions, total_deletions, created_at).  
+
+GitHub API: Fetches PR data using user access tokens from Supabase sessions.  
+
+Deployment: Vercel, linked to a GitHub repository, auto-deploys on push to main, with root directory set to . (no nesting).  
+
+Development: Built using Cursor, with local testing via npm run dev.
+
+Implementation Details:  
+File Structure: Root contains app/ (pages like dashboard/page.tsx, API routes like api/prs/route.ts), lib/ (Supabase clients), public/, package.json, next.config.ts, tsconfig.json, and tests in __tests__/.  
+
+Auth Flow: Users log in via GitHub OAuth (GitHubAuth.tsx), Supabase handles tokens, and supabase.auth.getSession() provides access tokens for GitHub API calls.  
+
+API Logic: /api/prs/route.ts fetches PRs from GitHub (https://api.github.com/repos/{owner}/{repo}/pulls), calculates metrics, and stores them in Supabase.  
+
+Dashboard: dashboard/page.tsx displays metrics with a form to input owner/repo, fetched via the API route.  
+
+Environment: .env.local holds NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY, mirrored in Vercel settings.  
+
+Cost: Uses free tiers of Vercel (hobby plan) and Supabase (500MB storage).
+
+Current State: The app is functional locally, with code at the root after moving from a nested pr-insights/ directory. It’s ready to push to GitHub and deploy on Vercel."
+
