@@ -1,0 +1,17 @@
+---
+description: Apply this rule when writing code
+globs: 
+alwaysApply: false
+---
+
+# Coding pattern preferences
+
+- Always prefer simple solutions
+- Avoid duplication of code where possible, that means check for other areas of code that might already have similar code
+- Write code that takes into account the different environments: dev, test, prod
+- Be careful to only make changes that are requested or you are confident are well understood and related to the change requested
+- When fixing a bug or issue, do not introduce a new pattern, technology, or dependency without exhausting all options for the existing implementation. You will have to justify why you are rewriting code if you must do so
+- Keep the codebase very clean and organized
+- Only mock data for tests, not for dev or prod
+- Never overwrite my .env file
+
