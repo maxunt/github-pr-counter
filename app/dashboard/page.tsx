@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../context/AuthContext';
 import Image from 'next/image';
+import Link from 'next/link';
 
 // Define interface for PR metrics
 interface PrMetrics {
@@ -40,27 +41,54 @@ export default function Dashboard() {
     setFetchLoading(true);
     try {
       const [owner, repoName] = repo.split('/');
+      console.log('Fetching PRs for:', { owner, repoName });
       
-      // First try the app router API route
-      let response = await fetch(`/api/prs?owner=${owner}&repo=${repoName}`);
+      // Try the app router API route
+      const url = `/api/prs?owner=${encodeURIComponent(owner)}&repo=${encodeURIComponent(repoName)}`;
+      console.log('Fetch URL:', url);
       
-      // If that fails, try the serverless function
-      if (!response.ok && response.status === 500) {
-        console.log('App router API failed, trying serverless function');
-        response = await fetch(`/api/prs?owner=${owner}&repo=${repoName}`);
+      let response = await fetch(url);
+      console.log('Response status:', response.status);
+      
+      // Now also try the serverless function as a fallback
+      if (!response.ok) {
+        console.log('App router API failed with status', response.status);
+        
+        // Try the serverless function as a fallback
+        const serverlessUrl = `/api/prs?owner=${encodeURIComponent(owner)}&repo=${encodeURIComponent(repoName)}`;
+        console.log('Trying serverless function at:', serverlessUrl);
+        
+        const fallbackResponse = await fetch(serverlessUrl);
+        if (fallbackResponse.ok) {
+          response = fallbackResponse;
+          console.log('Serverless function succeeded');
+        }
       }
       
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to fetch PR data');
+        const errorText = await response.text();
+        let errorJson;
+        try {
+          errorJson = JSON.parse(errorText);
+        } catch {
+          // Ignoring parse error and using default error message
+          errorJson = { error: 'Could not parse error response' };
+        }
+        
+        console.error('API error response:', errorJson);
+        const errorMessage = errorJson.error || `API request failed with status ${response.status}`;
+        showToast(errorMessage, 'error');
+        throw new Error(errorMessage);
       }
       
       const data = await response.json();
+      console.log('Received data:', data);
       setMetrics(data);
       showToast('PR data fetched successfully!', 'success');
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error fetching PRs:', error);
-      showToast('Error fetching PR data. Please try again.', 'error');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      showToast(`Error fetching PR data: ${errorMessage}`, 'error');
     } finally {
       setFetchLoading(false);
     }
@@ -102,6 +130,9 @@ export default function Dashboard() {
                 {user?.user_metadata?.user_name || user?.email || 'User'}
               </span>
             </div>
+            <Link href="/test" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2">
+              API Test
+            </Link>
             <button
               onClick={handleLogout}
               className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"

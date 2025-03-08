@@ -14,4 +14,4 @@ alwaysApply: false
 - Keep the codebase very clean and organized
 - Only mock data for tests, not for dev or prod
 - Never overwrite my .env file
-
+- Run the commands "npm run dev" and "npm run build" to validate there are no errors after you complete your work
