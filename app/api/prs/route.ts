@@ -1,8 +1,44 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '../../../lib/supabase-server';
 
+// Define type for cache data
+interface CacheData {
+  data: PrMetrics;
+  timestamp: number;
+}
+
+// Define type for PR metrics
+interface PrMetrics {
+  pr_count: number;
+  total_additions: number;
+  total_deletions: number;
+}
+
+// Define interface for GitHub PR data
+interface GitHubPr {
+  number: number;
+  additions: number;
+  deletions: number;
+  // Use more specific types for common GitHub PR properties
+  id: number;
+  title: string;
+  user: {
+    login: string;
+    id: number;
+    avatar_url?: string;
+  };
+  created_at: string;
+  updated_at: string;
+  closed_at: string | null;
+  merged_at: string | null;
+  state: string;
+  html_url: string;
+  // Use Record for remaining properties
+  [key: string]: unknown;
+}
+
 // In-memory cache
-const cache: Record<string, { data: any, timestamp: number }> = {};
+const cache: Record<string, CacheData> = {};
 const CACHE_TTL = 3600000; // 1 hour in milliseconds
 
 export async function GET(request: NextRequest) {
@@ -45,7 +81,7 @@ export async function GET(request: NextRequest) {
 
   try {
     // Fetch PRs from GitHub
-    let allPRs: any[] = [];
+    const allPRs: GitHubPr[] = [];
     let page = 1;
     let hasMore = true;
 

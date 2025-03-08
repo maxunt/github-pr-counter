@@ -3,12 +3,20 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../context/AuthContext';
+import Image from 'next/image';
+
+// Define interface for PR metrics
+interface PrMetrics {
+  pr_count: number;
+  total_additions: number;
+  total_deletions: number;
+}
 
 export default function Dashboard() {
   const { user, isLoading, signOut, showToast } = useAuth();
   const [fetchLoading, setFetchLoading] = useState(false);
   const [repo, setRepo] = useState('');
-  const [metrics, setMetrics] = useState<any>(null);
+  const [metrics, setMetrics] = useState<PrMetrics | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -74,9 +82,11 @@ export default function Dashboard() {
           <div className="flex items-center">
             <div className="mr-4 flex items-center">
               {user?.user_metadata?.avatar_url && (
-                <img 
+                <Image 
                   src={user.user_metadata.avatar_url} 
                   alt="Profile" 
+                  width={32}
+                  height={32}
                   className="h-8 w-8 rounded-full mr-2"
                 />
               )}
