@@ -41,6 +41,11 @@ interface GitHubPr {
 const cache: Record<string, CacheData> = {};
 const CACHE_TTL = 3600000; // 1 hour in milliseconds
 
+// Make sure to export the config for Vercel
+export const config = {
+  runtime: 'edge',
+};
+
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const owner = searchParams.get('owner');

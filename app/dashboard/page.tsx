@@ -40,7 +40,15 @@ export default function Dashboard() {
     setFetchLoading(true);
     try {
       const [owner, repoName] = repo.split('/');
-      const response = await fetch(`/api/prs?owner=${owner}&repo=${repoName}`);
+      
+      // First try the app router API route
+      let response = await fetch(`/api/prs?owner=${owner}&repo=${repoName}`);
+      
+      // If that fails, try the serverless function
+      if (!response.ok && response.status === 500) {
+        console.log('App router API failed, trying serverless function');
+        response = await fetch(`/api/prs?owner=${owner}&repo=${repoName}`);
+      }
       
       if (!response.ok) {
         const error = await response.json();
