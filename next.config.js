@@ -2,6 +2,10 @@
 const nextConfig = {
   /* config options here */
   reactStrictMode: true,
+  experimental: {
+    // Force SWC transforms for fonts
+    forceSwcTransforms: true,
+  },
   images: {
     domains: ['avatars.githubusercontent.com', 'github.com'],
     remotePatterns: [

@@ -3,21 +3,85 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
+  /* Primary color shades (Tesla Red) */
+  --primary-50: #fef2f2;
+  --primary-100: #fee2e2;
+  --primary-200: #fecaca;
+  --primary-300: #fca5a5;
+  --primary-400: #f87171;
+  --primary-500: #ef4444;
+  --primary-600: #dc2626;
+  --primary-700: #b91c1c;
+  --primary-800: #991b1b;
+  --primary-900: #7f1d1d;
+  
+  /* Secondary color shades (Dark Gray) */
+  --secondary-50: #f9fafb;
+  --secondary-100: #f3f4f6;
+  --secondary-200: #e5e7eb;
+  --secondary-300: #d1d5db;
+  --secondary-400: #9ca3af;
+  --secondary-500: #6b7280;
+  --secondary-600: #4b5563;
+  --secondary-700: #374151;
+  --secondary-800: #1f2937;
+  --secondary-900: #111827;
+  
+  /* Background colors */
+  --bg-main: #181b21;
+  --bg-card: #23262d;
+  --bg-input: #2d3037;
+  
+  /* Text colors */
+  --text-primary: #ffffff;
+  --text-secondary: #d1d5db;
+  
+  /* Border colors */
+  --border-color: #374151;
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
+  color: var(--text-primary);
+  background-color: var(--bg-main);
+}
+
+html {
+  height: 100%;
+  background-color: var(--bg-main);
+}
+
+/* Card and container styles */
+.card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+input, textarea, select {
+  background-color: var(--bg-input);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+
+.primary-button {
+  background-color: var(--primary-600);
+  color: white;
+  transition: background-color 0.2s ease;
+}
+
+.primary-button:hover {
+  background-color: var(--primary-700);
+}
+
+.secondary-button {
+  background-color: var(--secondary-600);
+  color: white;
+  transition: background-color 0.2s ease;
+}
+
+.secondary-button:hover {
+  background-color: var(--secondary-700);
 }
 
 /* Toast animations */
@@ -50,12 +114,12 @@ body {
 }
 
 .login-status.logged-in {
-  background-color: #10b981;
+  background-color: var(--primary-600);
   color: white;
 }
 
 .login-status.logged-out {
-  background-color: #6b7280;
+  background-color: var(--secondary-600);
   color: white;
 }
 
@@ -67,8 +131,8 @@ body {
 }
 
 .status-indicator.online {
-  background-color: #10b981;
-  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+  background-color: var(--primary-600);
+  box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.2);
 }
 
 .status-indicator.offline {

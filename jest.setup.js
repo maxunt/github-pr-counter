@@ -12,9 +12,24 @@ jest.mock('next/navigation', () => ({
     refresh: jest.fn(),
   }),
   usePathname: () => '/',
-  useSearchParams: () => new URLSearchParams(),
+  useSearchParams: () => ({
+    get: jest.fn(param => null),
+  }),
 }));
+
+// Mock window.location
+Object.defineProperty(window, 'location', {
+  value: {
+    origin: 'http://localhost:3000'
+  },
+  writable: true
+});
 
 // Mock env variables
 process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://example.supabase.co';
-process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key'; 
+process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key';
+
+// Suppress console noise during tests
+jest.spyOn(console, 'error').mockImplementation(() => {});
+jest.spyOn(console, 'warn').mockImplementation(() => {});
+jest.spyOn(console, 'log').mockImplementation(() => {}); 

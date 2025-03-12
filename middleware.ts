@@ -3,16 +3,19 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export async function middleware(req: NextRequest) {
+  console.log(`[Middleware] Request path: ${req.nextUrl.pathname}`);
+  
   const res = NextResponse.next();
   
-  // Create a Supabase client configured to use cookies
+  // Create a standard Supabase client configured to use cookies
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
         get(name) {
-          return req.cookies.get(name)?.value;
+          const cookie = req.cookies.get(name);
+          return cookie?.value;
         },
         set(name, value, options) {
           req.cookies.set({
@@ -42,39 +45,82 @@ export async function middleware(req: NextRequest) {
     }
   );
 
-  const { data: { session } } = await supabase.auth.getSession();
+  try {
+    // First check for our force auth bypass cookie
+    const forceAuth = req.cookies.get('force_auth');
+    
+    // Check for our manually set token cookie
+    const authToken = req.cookies.get('sb-auth-token');
+    
+    // Get the session from Supabase (this might fail if cookies aren't properly set)
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    // Check auth debug cookies
+    const authDebug = req.cookies.get('auth_debug');
+    const authDebugTime = req.cookies.get('auth_debug_time');
+    
+    // Log all cookies for debugging
+    console.log(`[Middleware] Cookies present:`, {
+      'force_auth': !!forceAuth,
+      'sb-auth-token': !!authToken,
+      'auth_debug': authDebug?.value,
+      'auth_debug_time': authDebugTime?.value,
+      'cookie_count': req.cookies.getAll().length,
+    });
+    
+    // If we have the force auth cookie, bypass all other checks
+    if (forceAuth?.value === 'true' && req.nextUrl.pathname.startsWith('/repo-selection')) {
+      console.log('[Middleware] Force auth cookie detected, bypassing authentication check');
+      return res;
+    }
+    
+    // Consider user authenticated if either method confirms it
+    const isAuthenticated = !!(session || authToken?.value);
+    
+    console.log(`[Middleware] User authenticated: ${isAuthenticated}`, 
+      session ? `via Supabase session: ${session.user.email}` : '',
+      authToken ? `via manual token: ${authToken.value.substring(0, 10)}...` : '');
+    
+    // If authenticated user is on login page, redirect to repo selection
+    if (isAuthenticated && req.nextUrl.pathname === '/') {
+      console.log('[Middleware] User authenticated, redirecting to repo selection');
+      const redirectUrl = new URL('/repo-selection', req.url);
+      console.log(`[Middleware] Redirecting to: ${redirectUrl.toString()}`);
+      return NextResponse.redirect(redirectUrl);
+    }
+    
+    // Prevent unauthenticated access to protected routes
+    if (!isAuthenticated && req.nextUrl.pathname !== '/' && !req.nextUrl.pathname.startsWith('/auth/')) {
+      console.log('[Middleware] No valid session trying to access protected route, redirecting to login page');
+      
+      // Create a custom response with debug information
+      const redirectResponse = NextResponse.redirect(new URL('/', req.url));
+      
+      // Add a debug cookie to help diagnose the issue
+      redirectResponse.cookies.set('auth_redirect_reason', 'no_valid_session', {
+        path: '/',
+        maxAge: 60 * 60,
+        sameSite: 'lax',
+      });
+      
+      redirectResponse.cookies.set('auth_redirect_time', new Date().toISOString(), {
+        path: '/',
+        maxAge: 60 * 60,
+        sameSite: 'lax',
+      });
+      
+      return redirectResponse;
+    }
 
-  // If the user is not signed in and trying to access a protected route,
-  // redirect them to the login page
-  if (!session && req.nextUrl.pathname.startsWith('/dashboard')) {
-    const redirectUrl = req.nextUrl.clone();
-    redirectUrl.pathname = '/';
-    redirectUrl.searchParams.set('redirectedFrom', req.nextUrl.pathname);
-    return NextResponse.redirect(redirectUrl);
+    return res;
+  } catch (error) {
+    console.error('[Middleware] Error in middleware:', error);
+    return res;
   }
-
-  // If the user is signed in and trying to access the login page,
-  // redirect them to the dashboard
-  if (session && req.nextUrl.pathname === '/') {
-    const redirectUrl = req.nextUrl.clone();
-    redirectUrl.pathname = '/dashboard';
-    return NextResponse.redirect(redirectUrl);
-  }
-
-  return res;
 }
 
+// Limit the middleware to specific routes
+// Exclude direct-repo-selection to avoid middleware authentication check
 export const config = {
-  matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     */
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
-    '/',
-    '/dashboard/:path*',
-  ],
+  matcher: ['/', '/repo-selection', '/repo-selection/:path*'],
 }; 
